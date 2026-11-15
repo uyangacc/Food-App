@@ -15,4 +15,4 @@ class Favorite(models.Model):
         unique_together = ("user", "recipe")
 
     def __str__(self):
-        return f"{self.user.username} -> {self.recipe.title}"
+        return f"{self.user.username} -> {self.recipe.Нэр}"  

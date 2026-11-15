@@ -20,7 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    recipe_title = serializers.CharField(source="recipe.title", read_only=True)
+    recipe_title = serializers.CharField(source="recipe.Нэр", read_only=True)
 
     class Meta:
         model = Favorite
