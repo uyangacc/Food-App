@@ -11,4 +11,4 @@ class Recipe(models.Model):
     Порц = models.PositiveIntegerField(default=2, verbose_name="Хүний тоо / Порц")
 
     def __str__(self):
-        return self.нэр
+        return f"{self.Нэр}"
