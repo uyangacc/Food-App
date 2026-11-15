@@ -1,12 +1,14 @@
 from django.db import models
 
 class Recipe(models.Model):
-    title = models.CharField(max_length=255, verbose_name="Хоолны нэр")
-    description = models.TextField(verbose_name="Тайлбар")
-    ingredients = models.TextField(verbose_name="Орц найрлага")
-    instructions = models.TextField(verbose_name="Хийх заавар")
-    image = models.ImageField(upload_to='recipes/', blank=True, null=True, verbose_name="Зураг")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Үүсгэсэн огноо")
+    Нэр = models.CharField(max_length=255, verbose_name="Хоолны нэр")
+    Тайлбар= models.TextField(verbose_name="Тайлбар")
+    Найрлага = models.TextField(verbose_name="Орц найрлага")
+    Заавар = models.TextField(verbose_name="Хийх заавар")
+    Зураг = models.ImageField(upload_to='recipes/', blank=True, null=True, verbose_name="Зураг")
+    Огноо = models.DateTimeField(auto_now_add=True, verbose_name="Үүсгэсэн огноо")
+    Хугацаа = models.CharField(max_length=50, blank=True, null=True, verbose_name="Хийх хугацаа (жишээ нь: 30 мин)")
+    Порц = models.PositiveIntegerField(default=2, verbose_name="Хүний тоо / Порц")
 
     def __str__(self):
-        return self.title
+        return self.нэр
