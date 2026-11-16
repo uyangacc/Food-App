@@ -3,6 +3,9 @@ import 'package:rive/rive.dart';
 import 'package:lottie/lottie.dart';
 import 'main.dart';
 import 'zagvar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
+
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -67,30 +70,61 @@ class _AuthPageState extends State<AuthPage> {
     }
   }
 
-  // Товч дарахад ажиллах логик
+   // Товч дарахад ажиллах логик
   void submit() async {
     if (!_formKey.currentState!.validate()) {
       _failTrigger?.value = true; // Алдаа гарвал уурлах анимаци
       return;
     }
 
-    _successTrigger?.value = true; // Амжилттай бол баярлах анимаци
+    final phone = phoneController.text.trim().replaceAll(' ', '');
+    final password = passwordController.text;
 
-    // 1. Lottie анимаци гаргах
-    setState(() {
-      isLoading = true;
-    });
+    // Lottie ачаалах анимаци гаргах
+    setState(() => isLoading = true);
 
-    // 2. 1.5 секунд хүлээх
+    bool ok;
+    String error;
+    if (isLogin) {
+      ok = await ApiService.login(phone, password);
+      error = 'Дугаар эсвэл нууц үг буруу байна';
+    } else {
+      // Backend username, email, password хүлээдэг тул дугаараас имэйл үүсгэнэ
+      final registered =
+          await ApiService.register(phone, '$phone@amttai.app', password);
+      ok = registered && await ApiService.login(phone, password);
+      error = 'Бүртгэл үүсгэж чадсангүй. Энэ дугаар бүртгэлтэй байж магадгүй';
+    }
+
+    if (!mounted) return;
+
+    if (!ok) {
+      setState(() => isLoading = false);
+      // Rive дахин ачаалагдсаны дараа уурлах анимаци
+      Future.delayed(const Duration(milliseconds: 400), () {
+        _failTrigger?.value = true;
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+
+    // Нэр, дугаарыг утсанд хадгална
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_phone', phone);
+    if (!isLogin) await prefs.setString('user_name', nameController.text);
+
+    _successTrigger?.value = true;
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    // 3. Үндсэн хуудас руу шилжих
+    // Үндсэн хуудас руу шилжих
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const Shell()),
     );
   }
+
 
   // Lottie ачаалах анимаци харуулах функц
   Widget buildLoading() {

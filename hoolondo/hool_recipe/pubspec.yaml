@@ -17,6 +17,7 @@ dependencies:
   native_liquid_glass_navbar: ^1.1.7
   flutter_svg: ^2.0.9
   lottie: ^3.1.2
+  http: ^1.6.0
   
 flutter:
   uses-material-design: true
