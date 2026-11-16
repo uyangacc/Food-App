@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'foodApp',
     'corsheaders',
     'rest_framework',
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -59,8 +60,12 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',         
         'rest_framework.renderers.BrowsableAPIRenderer',   
-    ]
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
+
 
 ROOT_URLCONF = 'cooks.urls'
 
@@ -133,3 +138,13 @@ STATIC_URL = 'static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+from datetime import timedelta
+
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
