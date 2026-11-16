@@ -1,0 +1,27 @@
+name: hool_recipe
+description: Хоолны жорын апп
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.3.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  crypto: ^3.0.3
+  shared_preferences: ^2.2.2
+  image_picker: ^1.1.2
+  image: ^4.2.0
+  rive: ^0.13.4
+  native_liquid_glass_navbar: ^1.1.7
+  flutter_svg: ^2.0.9
+  lottie: ^3.1.2
+  
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/13321-25212-auth-teddy.riv
+    - assets/animation/Spoon_Loader.json
+
+
