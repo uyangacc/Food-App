@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ogogdol.dart';
 import 'zagvar.dart';
+import 'nevtreh.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -170,6 +172,43 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Гарах уу?'),
+        content: const Text('Та бүртгэлээс гарахдаа итгэлтэй байна уу?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Болих'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Гарах'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout != true || !mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access');
+    await prefs.remove('refresh');
+    await prefs.remove('user_phone');
+    await prefs.remove('user_name');
+
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthPage()),
+      (route) => false,
     );
   }
 
@@ -428,6 +467,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         'Аппын тухай',
                         'Хоолны жор — Өдөр бүр шинэ амт, шинэ санаа.',
                       ),
+                    ),
+                    const Divider(height: 1, indent: 55),
+                    _settingTile(
+                      icon: Icons.logout,
+                      iconColor: Colors.redAccent,
+                      title: 'Гарах',
+                      onTap: _logout,
                     ),
                   ],
                 ),

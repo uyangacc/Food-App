@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rive/rive.dart';
 import 'package:lottie/lottie.dart';
 import 'main.dart';
 import 'zagvar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
-
+import 'ogogdol.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -70,7 +71,7 @@ class _AuthPageState extends State<AuthPage> {
     }
   }
 
-   // Товч дарахад ажиллах логик
+  // Товч дарахад ажиллах логик
   void submit() async {
     if (!_formKey.currentState!.validate()) {
       _failTrigger?.value = true; // Алдаа гарвал уурлах анимаци
@@ -80,19 +81,20 @@ class _AuthPageState extends State<AuthPage> {
     final phone = phoneController.text.trim().replaceAll(' ', '');
     final password = passwordController.text;
 
-    // Lottie ачаалах анимаци гаргах
-    setState(() => isLoading = true);
-
     bool ok;
     String error;
     if (isLogin) {
+      // Lottie-г зөвхөн нэвтрэх хүсэлт явж буй үед харуулна
+      setState(() => isLoading = true);
       ok = await ApiService.login(phone, password);
       error = 'Дугаар эсвэл нууц үг буруу байна';
     } else {
       // Backend username, email, password хүлээдэг тул дугаараас имэйл үүсгэнэ
-      final registered =
-          await ApiService.register(phone, '$phone@amttai.app', password);
-      ok = registered && await ApiService.login(phone, password);
+      ok = await ApiService.register(
+        phone,
+        '$phone@amttai.app',
+        password,
+      );
       error = 'Бүртгэл үүсгэж чадсангүй. Энэ дугаар бүртгэлтэй байж магадгүй';
     }
 
@@ -109,10 +111,29 @@ class _AuthPageState extends State<AuthPage> {
       return;
     }
 
+    if (!isLogin) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_name', nameController.text);
+
+      _successTrigger?.value = true;
+      setState(() {
+        isLoading = false;
+        isLogin = true;
+        showPassword = false;
+        passwordController.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Бүртгэл амжилттай үүслээ. Одоо нэвтэрнэ үү.')),
+      );
+      return;
+    }
+
     // Нэр, дугаарыг утсанд хадгална
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_phone', phone);
-    if (!isLogin) await prefs.setString('user_name', nameController.text);
+    await MockStore.loadPersisted(phone);
 
     _successTrigger?.value = true;
     await Future.delayed(const Duration(milliseconds: 1500));
@@ -124,7 +145,6 @@ class _AuthPageState extends State<AuthPage> {
       MaterialPageRoute(builder: (context) => const Shell()),
     );
   }
-
 
   // Lottie ачаалах анимаци харуулах функц
   Widget buildLoading() {
@@ -220,6 +240,10 @@ class _AuthPageState extends State<AuthPage> {
                                 child: TextFormField(
                                   controller: phoneController,
                                   keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(8),
+                                  ],
                                   onChanged: (v) =>
                                       _onTextChanged(v, isPassword: false),
                                   decoration: InputDecoration(
@@ -232,9 +256,16 @@ class _AuthPageState extends State<AuthPage> {
                                         borderRadius: BorderRadius.circular(15),
                                         borderSide: BorderSide.none),
                                   ),
-                                  validator: (v) => (v == null || v.isEmpty)
-                                      ? 'Дугаараа оруулна уу'
-                                      : null,
+                                  validator: (v) {
+                                    final digits = v?.replaceAll(' ', '') ?? '';
+                                    if (digits.isEmpty) {
+                                      return 'Дугаараа оруулна уу';
+                                    }
+                                    if (digits.length != 8) {
+                                      return 'Утасны дугаар 8 оронтой байх ёстой';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                               const SizedBox(height: 18),
@@ -246,6 +277,10 @@ class _AuthPageState extends State<AuthPage> {
                                 child: TextFormField(
                                   controller: passwordController,
                                   obscureText: !showPassword,
+                                  keyboardType: TextInputType.visiblePassword,
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(64),
+                                  ],
                                   onChanged: (v) =>
                                       _onTextChanged(v, isPassword: true),
                                   decoration: InputDecoration(
@@ -264,9 +299,18 @@ class _AuthPageState extends State<AuthPage> {
                                         borderRadius: BorderRadius.circular(15),
                                         borderSide: BorderSide.none),
                                   ),
-                                  validator: (v) => (v == null || v.length < 6)
-                                      ? 'Нууц үг богино байна'
-                                      : null,
+                                  validator: (v) {
+                                    final password = v ?? '';
+                                    if (password.length < 6) {
+                                      return 'Нууц үг дор хаяж 6 тэмдэгт байх ёстой';
+                                    }
+                                    final allowedPassword = RegExp(
+                                        r'''^[A-Za-zА-Яа-яЁёӨөҮү0-9 !@#\$%\^&*()_+\-=\[\]\{\};:'",.<>/?\\|`~]+$''');
+                                    if (!allowedPassword.hasMatch(password)) {
+                                      return 'Нууц үг англи/монгол үсэг, тоо, тусгай тэмдэгт агуулна';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                               const SizedBox(height: 25),
